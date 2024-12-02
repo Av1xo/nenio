@@ -22,6 +22,7 @@ func TestInitializeRepo(t *testing.T) {
 
 	requiredFiles := []string{
 		".nenio/HEAD",
+		".nenio/index",
 		".nenio/config",
 		".nenio/refs/heads",
 		".nenio/refs/tags",
