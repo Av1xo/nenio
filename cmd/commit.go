@@ -5,7 +5,6 @@ package cmd
 
 import (
 	"fmt"
-	"nenio/cmd"
 
 	"github.com/spf13/cobra"
 )
@@ -13,20 +12,15 @@ import (
 // commitCmd represents the commit command
 var commitCmd = &cobra.Command{
 	Use:   "commit",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Usage: nenio commit [flag]",
+	Long: `Command for working with commits`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("commit called")
 	},
 }
 
 func init() {
-	cmd.RootCmd.AddCommand(commitCmd)
+	rootCmd.AddCommand(commitCmd)
 
 	// Here you will define your flags and configuration settings.
 
