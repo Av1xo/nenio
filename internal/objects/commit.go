@@ -18,7 +18,6 @@ package objects
 
 */
 
-
 type TreeEntry struct {
 	Mode string
 	Hash string
@@ -26,9 +25,9 @@ type TreeEntry struct {
 }
 
 type Commit struct {
-	Tree string
-	Parent string
-	Author string
+	Tree      string
+	Parent    string
+	Author    string
 	Timestamp string
-	Message string
+	Message   string
 }

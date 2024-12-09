@@ -5,7 +5,6 @@ package cmd
 
 import (
 	"fmt"
-	"nenio/internal/objects"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -36,26 +35,6 @@ func init() {
 }
 
 func addFiles(files []string) error {
-	var (
-		objectsDir = ".nenio/objects"
-		indexPath = ".nenio/index"
-	)
-
-	for _, file := range files {
-		content, err := os.ReadFile(file)
-		if err != nil {
-			return fmt.Errorf("failed to read file %s: %w", file, err)
-		}
-
-		hash, err := objects.CreateBlob(objectsDir, content) 
-		if err != nil{
-			return fmt.Errorf("failed to create blob for file %s: %w", file, err)
-		}
-
-		if err := objects.UpdateIndex(indexPath, hash, file); err != nil {
-			return fmt.Errorf("failed to update index for file %s: %w", file, err)
-		}
-	}
 
 	return nil
 }

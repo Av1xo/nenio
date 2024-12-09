@@ -11,7 +11,6 @@ import (
 	"lukechampine.com/blake3"
 )
 
-
 func CreateBlob(objectsDir string, content []byte) (string, error) {
 	hash := blake3.Sum256(content)
 	hashHex := fmt.Sprintf("%x", hash)
@@ -28,7 +27,7 @@ func CreateBlob(objectsDir string, content []byte) (string, error) {
 		return hashHex, nil
 	}
 
-	compressedContent, err := CompressBlob(content) 
+	compressedContent, err := compressBlob(content)
 	if err != nil {
 		return "", err
 	}
@@ -48,10 +47,10 @@ func ReadBlob(objectsDir, hashHex string) ([]byte, error) {
 	}
 	defer file.Close()
 
-	return DecompressBlob(file)
+	return decompressBlob(file)
 }
 
-func CompressBlob(content []byte) ([]byte, error) {
+func compressBlob(content []byte) ([]byte, error) {
 	var compressedBuffer bytes.Buffer
 
 	gzipWriter := gzip.NewWriter(&compressedBuffer)
@@ -67,13 +66,13 @@ func CompressBlob(content []byte) ([]byte, error) {
 	return compressedBuffer.Bytes(), nil
 }
 
-func DecompressBlob(file io.Reader) ([]byte, error) {
+func decompressBlob(file io.Reader) ([]byte, error) {
 	gzipReader, err := gzip.NewReader(file)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create gzip reader: %v", err)
 	}
 	defer gzipReader.Close()
-	
+
 	var decompressedBuffer bytes.Buffer
 	if _, err := io.Copy(&decompressedBuffer, gzipReader); err != nil {
 		return nil, fmt.Errorf("failed to decompress blob: %v", err)
@@ -93,4 +92,15 @@ func BlobExists(objectsDir, hashHex string) (bool, error) {
 	}
 
 	return false, fmt.Errorf("failed to check blob existence: %v", err)
+}
+
+func DeleteBlob(objectsDir, hashHex string) error {
+	blobPath := filepath.Join(objectsDir, hashHex[:2], hashHex[2:])
+	if err := os.Remove(blobPath); err != nil{
+		if os.IsNotExist(err){
+			return fmt.Errorf("blob %s does not exist", hashHex)
+		}
+		return fmt.Errorf("failed to delete blob: %w", err)
+	}
+	return nil
 }
