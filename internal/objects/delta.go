@@ -31,6 +31,7 @@ const BlockSize = 4096 // 4kb
 type DeltaInstruction struct {
 	Type   instructionType
 	Offset int
+	Length int
 	Data   []byte
 }
 
@@ -72,6 +73,7 @@ func ComputeDelta(base, updated []byte) ([]DeltaInstruction, error) {
 			delta = append(delta, DeltaInstruction{
 				Type:   COPY,
 				Offset: offset,
+				Length: end - i,
 			})
 		} else {
 			buffer.Write(block)
@@ -98,7 +100,7 @@ func ApplyDelta(base []byte, delta []DeltaInstruction) ([]byte, error) {
 		switch instruction.Type {
 		case COPY:
 			start := instruction.Offset
-			end := start + BlockSize
+			end := start + instruction.Length
 			if start < 0 || start >= len(base) {
 				return nil, fmt.Errorf("COPY instruction out of bounds: start=%d, base length=%d", start, len(base))
 			}

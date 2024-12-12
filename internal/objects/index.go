@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 type IndexEntry struct {
@@ -70,7 +69,7 @@ func AddToIndex(objectsDir, indexPath string, files []string) error {
 		return err
 	}
 
-	ignorePatterns, _ := LoadIgnorePatterns(".nignore")
+	ignorePatterns, _ := LoadIgnorePatterns(filepath.Join(objectsDir, ".nignore"))
 
 	for _, file := range files {
 		if ShouldIgnoreFile(file, ignorePatterns) {
@@ -135,30 +134,4 @@ func AddToIndex(objectsDir, indexPath string, files []string) error {
 	}
 
 	return SaveIndex(indexPath, index)
-}
-
-func LoadIgnorePatterns(ignoreFilePath string) ([]string, error) {
-	data, err := os.ReadFile(ignoreFilePath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return []string{}, nil
-		}
-		return nil, fmt.Errorf("failed to read .nignore: %v", err)
-	}
-
-	patterns := strings.Split(string(data), "\n")
-	for i, p := range patterns {
-		patterns[i] = strings.TrimSpace(p)
-	}
-
-	return patterns, nil
-}
-
-func ShouldIgnoreFile(path string, patterns []string) bool {
-	for _, pattern := range patterns {
-		if matched, _ := filepath.Match(pattern, filepath.Base(path)); matched {
-			return true
-		}
-	}
-	return false
 }
