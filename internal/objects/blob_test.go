@@ -44,13 +44,13 @@ func TestReadBlob(t *testing.T) {
 func TestCompressAndDecompressBlob(t *testing.T) {
 	content := []byte("Test data for compression and decompression")
 
-	compressed, err := compressBlob(content)
+	compressed, err := CompressBlob(content)
 	if err != nil {
 		t.Fatalf("CompressBlob failed: %v", err)
 	}
 
 	reader := bytes.NewReader(compressed)
-	decompressed, err := decompressBlob(reader)
+	decompressed, err := DecompressBlob(reader)
 	if err != nil {
 		t.Fatalf("DecompressBlob failed: %v", err)
 	}

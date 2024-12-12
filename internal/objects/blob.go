@@ -27,7 +27,7 @@ func CreateBlob(objectsDir string, content []byte) (string, error) {
 		return hashHex, nil
 	}
 
-	compressedContent, err := compressBlob(content)
+	compressedContent, err := CompressBlob(content)
 	if err != nil {
 		return "", err
 	}
@@ -40,17 +40,16 @@ func CreateBlob(objectsDir string, content []byte) (string, error) {
 }
 
 func ReadBlob(objectsDir, hashHex string) ([]byte, error) {
-	blobPath := filepath.Join(objectsDir, hashHex[:2], hashHex[2:])
-	file, err := os.Open(blobPath)
+	file, err := os.Open(blobPath(objectsDir, hashHex))
 	if err != nil {
 		return nil, fmt.Errorf("failed to open blob: %v", err)
 	}
 	defer file.Close()
 
-	return decompressBlob(file)
+	return DecompressBlob(file)
 }
 
-func compressBlob(content []byte) ([]byte, error) {
+func CompressBlob(content []byte) ([]byte, error) {
 	var compressedBuffer bytes.Buffer
 
 	gzipWriter := gzip.NewWriter(&compressedBuffer)
@@ -66,7 +65,7 @@ func compressBlob(content []byte) ([]byte, error) {
 	return compressedBuffer.Bytes(), nil
 }
 
-func decompressBlob(file io.Reader) ([]byte, error) {
+func DecompressBlob(file io.Reader) ([]byte, error) {
 	gzipReader, err := gzip.NewReader(file)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create gzip reader: %v", err)
@@ -82,8 +81,7 @@ func decompressBlob(file io.Reader) ([]byte, error) {
 }
 
 func BlobExists(objectsDir, hashHex string) (bool, error) {
-	blobPath := filepath.Join(objectsDir, hashHex[:2], hashHex[2:])
-	_, err := os.Stat(blobPath)
+	_, err := os.Stat(blobPath(objectsDir, hashHex))
 	if err == nil {
 		return true, nil
 	}
@@ -95,12 +93,15 @@ func BlobExists(objectsDir, hashHex string) (bool, error) {
 }
 
 func DeleteBlob(objectsDir, hashHex string) error {
-	blobPath := filepath.Join(objectsDir, hashHex[:2], hashHex[2:])
-	if err := os.Remove(blobPath); err != nil{
-		if os.IsNotExist(err){
+	if err := os.Remove(blobPath(objectsDir, hashHex)); err != nil {
+		if os.IsNotExist(err) {
 			return fmt.Errorf("blob %s does not exist", hashHex)
 		}
 		return fmt.Errorf("failed to delete blob: %w", err)
 	}
 	return nil
+}
+
+func blobPath(objectsDir, hashHex string) string {
+	return filepath.Join(objectsDir, hashHex[:2], hashHex[2:])
 }
