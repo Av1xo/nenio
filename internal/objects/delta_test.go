@@ -103,7 +103,7 @@ func TestDeltaWithEmptyUpdated(t *testing.T) {
 }
 
 func TestDeltaWithLargeData(t *testing.T) {
-	base := bytes.Repeat([]byte("A"), 10*BlockSize) // 10 blocks of 'A'
+	base := bytes.Repeat([]byte("A"), 10*BlockSize)                                                      // 10 blocks of 'A'
 	updated := append(bytes.Repeat([]byte("A"), 5*BlockSize), bytes.Repeat([]byte("B"), 5*BlockSize)...) // Half 'A', half 'B'
 
 	delta, err := ComputeDelta(base, updated)

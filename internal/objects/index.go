@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"log"
 	"path/filepath"
+	"sync"
 )
 
 type IndexEntry struct {
@@ -71,67 +73,93 @@ func AddToIndex(objectsDir, indexPath string, files []string) error {
 
 	ignorePatterns, _ := LoadIgnorePatterns(filepath.Join(filepath.Dir(indexPath), ".nignore"))
 
+	var (
+		wg sync.WaitGroup
+		mu sync.Mutex
+	)
+
 	for _, file := range files {
-		if ShouldIgnoreFile(file, ignorePatterns) {
-			continue
-		}
+		wg.Add(1)
 
-		info, err := os.Stat(file)
-		if err != nil {
-			return fmt.Errorf("failed to stat file %s: %v", file, err)
-		}
+		go func(file string) {
 
-		if info.IsDir() {
-			continue
-		}
+			defer wg.Done()
 
-		content, err := os.ReadFile(file)
-		if err != nil {
-			return fmt.Errorf("failed to read file %s: %v", file, err)
-		}
-
-		existingEntry, exists := index.Entries[file]
-		if exists {
-			savedContent, err := ReadBlob(objectsDir, existingEntry.BlobHash)
-			if err != nil {
-				return fmt.Errorf("failed to  read existing blob for file %s: %v", file, err)
+			if ShouldIgnoreFile(file, ignorePatterns) {
+				return 
 			}
 
-			delta, err := ComputeDelta(savedContent, content)
+			info, err := os.Stat(file)
 			if err != nil {
-				return fmt.Errorf("failed to compute delta for file %s: %v", file, err)
+				log.Fatalf("failed to stat file %s: %v", file, err)
+				return 
 			}
-			if len(delta) > 0 {
-				blobHash, err := CreateBlob(objectsDir, content)
+
+			if info.IsDir() {
+				return 
+			}
+
+			content, err := os.ReadFile(file)
+			if err != nil {
+				log.Fatalf("failed to read file %s: %v", file, err)
+				return 
+			}
+
+			mu.Lock()
+			defer mu.Unlock()
+
+			existingEntry, exists := index.Entries[file]
+			if exists {
+				savedContent, err := ReadBlob(objectsDir, existingEntry.BlobHash)
 				if err != nil {
-					return fmt.Errorf("failed to create blob for file %s: %v", file, err)
+					log.Fatalf("failed to  read existing blob for file %s: %v", file, err)
+					return 
 				}
 
-				existingEntry.BlobHash = blobHash
-				existingEntry.FileMode = info.Mode()
-				existingEntry.FileSize = info.Size()
-				existingEntry.ModifiedAt = info.ModTime().Unix()
-				index.Entries[file] = existingEntry
+				delta, err := ComputeDelta(savedContent, content)
+				if err != nil {
+					log.Fatalf("failed to compute delta for file %s: %v", file, err)
+					return 
+				}
+				if len(delta) > 0 {
+					blobHash, err := CreateBlob(objectsDir, content)
+					if err != nil {
+						log.Fatalf("failed to create blob for file %s: %v", file, err)
+						return 
+					}
+
+					existingEntry.BlobHash = blobHash
+					existingEntry.FileMode = info.Mode()
+					existingEntry.FileSize = info.Size()
+					existingEntry.ModifiedAt = info.ModTime().Unix()
+					index.Entries[file] = existingEntry
+				}
+
+			} else {
+				blobHash, err := CreateBlob(objectsDir, content)
+				if err != nil {
+					log.Fatalf("failed to create blob for file %s: %v", objectsDir, err)
+					return 
+				}
+
+				entry := IndexEntry{
+					Path:       file,
+					BlobHash:   blobHash,
+					FileMode:   info.Mode(),
+					FileSize:   info.Size(),
+					ModifiedAt: info.ModTime().Unix(),
+				}
+
+				index.AddEntry(entry)
 			}
-
-		} else {
-			blobHash, err := CreateBlob(objectsDir, content)
-			if err != nil {
-				return fmt.Errorf("failed to create blob for file %s: %v", objectsDir, err)
-			}
-
-			entry := IndexEntry{
-				Path:       file,
-				BlobHash:   blobHash,
-				FileMode:   info.Mode(),
-				FileSize:   info.Size(),
-				ModifiedAt: info.ModTime().Unix(),
-			}
-
-			index.AddEntry(entry)
-		}
-
+		}(file)
 	}
 
-	return SaveIndex(indexPath, index)
+	wg.Wait()
+
+	if err := SaveIndex(indexPath, index); err != nil {
+		return fmt.Errorf("failed to save index: %v", err)
+	}
+
+	return nil
 }

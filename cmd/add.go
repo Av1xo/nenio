@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"fmt"
+	"nenio/internal/objects"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -25,7 +26,6 @@ var addCmd = &cobra.Command{
 			fmt.Printf("failed to add files: %v\n", err)
 			os.Exit(1)
 		}
-		
 		fmt.Println("Files successfully added.")
 	},
 }
@@ -35,6 +35,13 @@ func init() {
 }
 
 func addFiles(files []string) error {
+	objectsDir := "./.nenio/objects" 
+	indexPath := "./.nenio/index.json"
 
+	err := objects.AddToIndex(objectsDir, indexPath, files)
+	
+	if err != nil {
+		return err
+	}
 	return nil
 }

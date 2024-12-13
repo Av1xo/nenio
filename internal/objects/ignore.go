@@ -50,7 +50,7 @@ func ShouldIgnoreFile(path string, patterns []string) bool {
 		if pattern == "" || strings.HasPrefix(pattern, "#") {
 			continue
 		}
-		
+
 		if strings.HasPrefix(pattern, "/") {
 			absolutePattern := strings.TrimPrefix(pattern, "/")
 			if strings.HasPrefix(relPath, absolutePattern) {

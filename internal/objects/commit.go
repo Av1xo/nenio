@@ -25,6 +25,7 @@ type TreeEntry struct {
 }
 
 type Commit struct {
+	Hash      string
 	Tree      string
 	Parent    string
 	Author    string

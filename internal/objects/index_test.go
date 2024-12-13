@@ -66,9 +66,9 @@ func TestAddToIndex(t *testing.T) {
 
 func TestShouldIgnoreFile_AdvancedPatterns(t *testing.T) {
 	patterns := []string{
-		"*.log",         
-		"node_modules/", 
-		"# This is a comment", 
+		"*.log",
+		"node_modules/",
+		"# This is a comment",
 		"!important.log",
 		"/logs/",
 	}
@@ -81,8 +81,6 @@ func TestShouldIgnoreFile_AdvancedPatterns(t *testing.T) {
 	assert.True(t, ShouldIgnoreFile("./logs/file.log", patterns))
 	assert.True(t, ShouldIgnoreFile("./not_logs/debug.log", patterns))
 }
-
-
 
 func TestLoadIgnorePatterns(t *testing.T) {
 	tempDir := t.TempDir()
@@ -121,3 +119,4 @@ func TestAddToIndex_IgnoreFile(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Empty(t, index.Entries)
 }
+

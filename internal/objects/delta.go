@@ -3,6 +3,7 @@ package objects
 import (
 	"bytes"
 	"fmt"
+	"sync"
 
 	"lukechampine.com/blake3"
 )
@@ -43,14 +44,27 @@ func ComputeDelta(base, updated []byte) ([]DeltaInstruction, error) {
 	var delta []DeltaInstruction
 	baseHashes := make(map[[32]byte]int)
 
+	var wg sync.WaitGroup
+	mu := sync.Mutex{}
+
 	for i := 0; i < len(base); i += BlockSize {
-		end := i + BlockSize
-		if end > len(base) {
-			end = len(base)
-		}
-		hash := blake3.Sum256(base[i:end])
-		baseHashes[hash] = i
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+
+			end := i + BlockSize
+			if end > len(base) {
+				end = len(base)
+			}
+			hash := blake3.Sum256(base[i:end])
+
+			mu.Lock()
+			baseHashes[hash] = i
+			mu.Unlock()
+		}(i)
 	}
+
+	wg.Wait()
 
 	var buffer bytes.Buffer
 	for i := 0; i < len(updated); i += BlockSize {
