@@ -69,7 +69,7 @@ func AddToIndex(objectsDir, indexPath string, files []string) error {
 		return err
 	}
 
-	ignorePatterns, _ := LoadIgnorePatterns(filepath.Join(objectsDir, ".nignore"))
+	ignorePatterns, _ := LoadIgnorePatterns(filepath.Join(filepath.Dir(indexPath), ".nignore"))
 
 	for _, file := range files {
 		if ShouldIgnoreFile(file, ignorePatterns) {

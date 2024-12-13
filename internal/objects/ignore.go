@@ -29,10 +29,46 @@ func LoadIgnorePatterns(ignoreFilePath string) ([]string, error) {
 }
 
 func ShouldIgnoreFile(path string, patterns []string) bool {
+	relPath, err := filepath.Rel(".", path)
+	if err != nil {
+		relPath = path
+	}
+	relPath = filepath.ToSlash(relPath)
+
 	for _, pattern := range patterns {
-		if matched, _ := filepath.Match(pattern, filepath.Base(path)); matched {
+		pattern = strings.TrimSpace(pattern)
+		if strings.HasPrefix(pattern, "!") {
+			excludePattern := strings.TrimPrefix(pattern, "!")
+			if matched, _ := filepath.Match(excludePattern, relPath); matched {
+				return false
+			}
+		}
+	}
+
+	for _, pattern := range patterns {
+		pattern = strings.TrimSpace(pattern)
+		if pattern == "" || strings.HasPrefix(pattern, "#") {
+			continue
+		}
+		
+		if strings.HasPrefix(pattern, "/") {
+			absolutePattern := strings.TrimPrefix(pattern, "/")
+			if strings.HasPrefix(relPath, absolutePattern) {
+				return true
+			}
+		}
+		
+		if strings.HasSuffix(pattern, "/") {
+			dirPattern := strings.TrimSuffix(pattern, "/")
+			if strings.HasPrefix(relPath, dirPattern+"/") || relPath == dirPattern {
+				return true
+			}
+		}
+
+		if matched, _ := filepath.Match(pattern, relPath); matched {
 			return true
 		}
 	}
+
 	return false
 }

@@ -64,13 +64,25 @@ func TestAddToIndex(t *testing.T) {
 	assert.NotEmpty(t, index.Entries[file1Path].BlobHash)
 }
 
-func TestShouldIgnoreFile(t *testing.T) {
-	patterns := []string{"*.tmp", "ignore_me", }
+func TestShouldIgnoreFile_AdvancedPatterns(t *testing.T) {
+	patterns := []string{
+		"*.log",         
+		"node_modules/", 
+		"# This is a comment", 
+		"!important.log",
+		"/logs/",
+	}
 
-	assert.True(t, ShouldIgnoreFile("temp.tmp", patterns))
-	assert.True(t, ShouldIgnoreFile("ignore_me", patterns))
-	assert.False(t, ShouldIgnoreFile("important.txt", patterns))
+	assert.True(t, ShouldIgnoreFile("./debug.log", patterns))
+	assert.True(t, ShouldIgnoreFile("./node_modules/file.js", patterns))
+	assert.True(t, ShouldIgnoreFile("./node_modules/subdir/file.js", patterns))
+	assert.False(t, ShouldIgnoreFile("./important.log", patterns))
+	assert.False(t, ShouldIgnoreFile("./random/logs/file.log", patterns))
+	assert.True(t, ShouldIgnoreFile("./logs/file.log", patterns))
+	assert.False(t, ShouldIgnoreFile("./not_logs/debug.log", patterns))
 }
+
+
 
 func TestLoadIgnorePatterns(t *testing.T) {
 	tempDir := t.TempDir()
