@@ -11,7 +11,7 @@ func TestCreateBlob(t *testing.T) {
 	tempDir := t.TempDir()
 	content := []byte("This is a test blob")
 
-	hash, err := CreateBlob(tempDir, content)
+	hash, _, err := CreateBlob(tempDir, content)
 	if err != nil {
 		t.Fatalf("CreateBlob failed: %v", err)
 	}
@@ -26,7 +26,7 @@ func TestReadBlob(t *testing.T) {
 	tempDir := t.TempDir()
 	content := []byte("Another test blob")
 
-	hash, err := CreateBlob(tempDir, content)
+	hash, _, err := CreateBlob(tempDir, content)
 	if err != nil {
 		t.Fatalf("CreateBlob failed: %v", err)
 	}
@@ -64,7 +64,7 @@ func TestBlobExists(t *testing.T) {
 	tempDir := t.TempDir()
 	content := []byte("Check if blob exists")
 
-	hash, err := CreateBlob(tempDir, content)
+	hash, _, err := CreateBlob(tempDir, content)
 	if err != nil {
 		t.Fatalf("CreateBlob failed: %v", err)
 	}

@@ -55,7 +55,7 @@ func TestAddToIndex(t *testing.T) {
 	err = os.WriteFile(file1Path, []byte("content1"), 0644)
 	assert.NoError(t, err)
 
-	err = AddToIndex(objectsDir, indexPath, []string{file1Path})
+	err = AddToIndex(objectsDir, indexPath, []string{}, []string{file1Path})
 	assert.NoError(t, err)
 
 	index, err := LoadIndex(indexPath)
@@ -71,6 +71,7 @@ func TestShouldIgnoreFile_AdvancedPatterns(t *testing.T) {
 		"# This is a comment",
 		"!important.log",
 		"/logs/",
+		".nenio/",
 	}
 
 	assert.True(t, ShouldIgnoreFile("./debug.log", patterns))
@@ -80,6 +81,7 @@ func TestShouldIgnoreFile_AdvancedPatterns(t *testing.T) {
 	assert.True(t, ShouldIgnoreFile("./random/logs/file.log", patterns))
 	assert.True(t, ShouldIgnoreFile("./logs/file.log", patterns))
 	assert.True(t, ShouldIgnoreFile("./not_logs/debug.log", patterns))
+	assert.True(t, ShouldIgnoreFile("./.nenio/init", patterns))
 }
 
 func TestLoadIgnorePatterns(t *testing.T) {
@@ -108,11 +110,13 @@ func TestAddToIndex_IgnoreFile(t *testing.T) {
 	err = os.WriteFile(ignoreFilePath, []byte(ignoreContent), 0644)
 	assert.NoError(t, err)
 
+	ignorePatterns, _ := LoadIgnorePatterns(filepath.Join(filepath.Dir(indexPath), ".nignore"))
+
 	file1Path := filepath.Join(tempDir, "file1.tmp")
 	err = os.WriteFile(file1Path, []byte("temporary content"), 0644)
 	assert.NoError(t, err)
 
-	err = AddToIndex(objectsDir, indexPath, []string{file1Path})
+	err = AddToIndex(objectsDir, indexPath, ignorePatterns, []string{file1Path})
 	assert.NoError(t, err)
 
 	index, err := LoadIndex(indexPath)

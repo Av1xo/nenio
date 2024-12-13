@@ -11,32 +11,28 @@ import (
 	"lukechampine.com/blake3"
 )
 
-func CreateBlob(objectsDir string, content []byte) (string, error) {
+func CreateBlob(objectsDir string, content []byte) (string, []byte, error) {
 	hash := blake3.Sum256(content)
 	hashHex := fmt.Sprintf("%x", hash)
 
 	subDir := filepath.Join(objectsDir, hashHex[:2])
 	if err := os.MkdirAll(subDir, 0755); err != nil {
-		return "", fmt.Errorf("failed to create objects subdirectory: %v", err)
+		return "", nil, fmt.Errorf("failed to create objects subdirectory: %v", err)
 	}
 
-	blobPath := filepath.Join(subDir, hashHex[2:])
 	if exists, err := BlobExists(subDir, hashHex); err != nil {
-		return "", err
+		return "", nil, err
 	} else if exists {
-		return hashHex, nil
+		return hashHex, nil, nil
 	}
 
 	compressedContent, err := CompressBlob(content)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
-	if err := os.WriteFile(blobPath, compressedContent, 0644); err != nil {
-		return "", fmt.Errorf("failed to write blob: %v", err)
-	}
 
-	return hashHex, nil
+	return hashHex, compressedContent, nil
 }
 
 func ReadBlob(objectsDir, hashHex string) ([]byte, error) {

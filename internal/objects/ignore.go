@@ -7,11 +7,13 @@ import (
 	"strings"
 )
 
+// The function `LoadIgnorePatterns` reads ignore patterns from a file and returns them as a slice of
+// strings.
 func LoadIgnorePatterns(ignoreFilePath string) ([]string, error) {
 	data, err := os.ReadFile(ignoreFilePath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return []string{}, nil
+			return []string{".nenio/"}, nil
 		}
 		return nil, fmt.Errorf("failed to read .nignore: %v", err)
 	}
@@ -24,10 +26,13 @@ func LoadIgnorePatterns(ignoreFilePath string) ([]string, error) {
 			patterns = append(patterns, trimmed)
 		}
 	}
+	patterns = append(patterns, ".nenio/")
 
 	return patterns, nil
 }
 
+// The function `ShouldIgnoreFile` determines whether a file path should be ignored based on a list of
+// patterns.
 func ShouldIgnoreFile(path string, patterns []string) bool {
 	relPath, err := filepath.Rel(".", path)
 	if err != nil {

@@ -36,6 +36,8 @@ type DeltaInstruction struct {
 	Data   []byte
 }
 
+// The ComputeDelta function generates a list of delta instructions to transform a base byte slice into
+// an updated byte slice using block-based differencing.
 func ComputeDelta(base, updated []byte) ([]DeltaInstruction, error) {
 	if base == nil || updated == nil {
 		return nil, fmt.Errorf("base or updated data is nil")
@@ -104,6 +106,8 @@ func ComputeDelta(base, updated []byte) ([]DeltaInstruction, error) {
 	return delta, nil
 }
 
+// The ApplyDelta function takes a base byte slice and a list of DeltaInstructions to apply changes and
+// return the resulting byte slice.
 func ApplyDelta(base []byte, delta []DeltaInstruction) ([]byte, error) {
 	if base == nil {
 		return nil, fmt.Errorf("base data is nil")

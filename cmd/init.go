@@ -49,7 +49,7 @@ var (
 	files = map[string]string{
 		"HEAD": "ref: refs/heads/main\n", // гілка по дефолту main
 		"config": "[core]\n\trepositoryFormatVersion =0\n",
-		"index.json": "",
+		"index.json": "{}",
 	}
 )
 
