@@ -39,7 +39,7 @@ func ShouldIgnoreFile(path string, patterns []string) bool {
 		pattern = strings.TrimSpace(pattern)
 		if strings.HasPrefix(pattern, "!") {
 			excludePattern := strings.TrimPrefix(pattern, "!")
-			if matched, _ := filepath.Match(excludePattern, relPath); matched {
+			if matched, _ := filepath.Match(excludePattern, filepath.Base(path)); matched {
 				return false
 			}
 		}
@@ -57,7 +57,7 @@ func ShouldIgnoreFile(path string, patterns []string) bool {
 				return true
 			}
 		}
-		
+
 		if strings.HasSuffix(pattern, "/") {
 			dirPattern := strings.TrimSuffix(pattern, "/")
 			if strings.HasPrefix(relPath, dirPattern+"/") || relPath == dirPattern {
@@ -65,7 +65,7 @@ func ShouldIgnoreFile(path string, patterns []string) bool {
 			}
 		}
 
-		if matched, _ := filepath.Match(pattern, relPath); matched {
+		if matched, _ := filepath.Match(pattern, filepath.Base(path)); matched {
 			return true
 		}
 	}

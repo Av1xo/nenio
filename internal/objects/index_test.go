@@ -77,9 +77,9 @@ func TestShouldIgnoreFile_AdvancedPatterns(t *testing.T) {
 	assert.True(t, ShouldIgnoreFile("./node_modules/file.js", patterns))
 	assert.True(t, ShouldIgnoreFile("./node_modules/subdir/file.js", patterns))
 	assert.False(t, ShouldIgnoreFile("./important.log", patterns))
-	assert.False(t, ShouldIgnoreFile("./random/logs/file.log", patterns))
+	assert.True(t, ShouldIgnoreFile("./random/logs/file.log", patterns))
 	assert.True(t, ShouldIgnoreFile("./logs/file.log", patterns))
-	assert.False(t, ShouldIgnoreFile("./not_logs/debug.log", patterns))
+	assert.True(t, ShouldIgnoreFile("./not_logs/debug.log", patterns))
 }
 
 
